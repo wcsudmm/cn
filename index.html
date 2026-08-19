@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>七夕专属 - 星河滚烫，你是人间理想</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background-color: #0b0f19;
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            cursor: pointer; /* 提示用户点击屏幕 */
+        }
+
+        /* 烟花画布层 */
+        #fireworks-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+            pointer-events: none; /* 让点击事件穿透到body */
+        }
+
+        /* 星空背景 */
+        .stars {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: transparent;
+            z-index: 0;
+        }
+        .stars::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,0.3), transparent),
+                        radial-gradient(2px 2px at 40% 70%, rgba(255,255,255,0.2), transparent),
+                        radial-gradient(1px 1px at 60% 20%, rgba(255,255,255,0.4), transparent),
+                        radial-gradient(2px 2px at 80% 50%, rgba(255,255,255,0.2), transparent);
+            animation: twinkle 4s infinite alternate;
+        }
+
+        /* 核心内容卡片 */
+        .content {
+            position: relative;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            padding: 50px 70px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+            max-width: 650px;
+            transition: transform 0.3s ease;
+        }
+        .content:hover { transform: translateY(-5px); }
+
+        h1 {
+            font-size: 3.5rem;
+            background: linear-gradient(to right, #ff7eb3, #ff758c, #ffb199);
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(255, 117, 140, 0.5);
+        }
+
+        p {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 15px;
+        }
+
+        .heart {
+            font-size: 4rem;
+            color: #ff758c;
+            animation: heartbeat 1.5s infinite;
+            margin: 20px 0;
+        }
+
+        /* 音乐控制按钮 */
+        .music-btn {
+            position: absolute;
+            top: 20px; right: 20px;
+            z-index: 20;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        .music-btn:hover { background: rgba(255,255,255,0.2); }
+
+        /* 喜鹊飘落 */
+        .magpie {
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0.8;
+            animation: fall linear infinite;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        /* 动画关键帧 */
+        @keyframes twinkle { 0% { opacity: 0.5; } 100% { opacity: 1; } }
+        @keyframes heartbeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+        @keyframes fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.8; } 90% { opacity: 0.8; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="music-btn" id="musicBtn">🎵 开启音乐</button>
+    <div class="stars"></div>
+    <canvas id="fireworks-canvas"></canvas>
+
+    <div class="content">
+        <div class="heart">💖</div>
+        <h1>七夕快乐</h1>
+        <p>星河滚烫，你是人间理想。</p>
+        <p>皓月清凉，你是心之所向。</p>
+        <p style="margin-top: 30px; font-size: 1rem; color: rgba(255,255,255,0.6);">
+            愿鹊桥上的每一次相逢，都不负这漫长岁月的等待。<br>
+            点击屏幕任意位置，为你绽放专属烟花！
+        </p>
+    </div>
+
+    <!-- 背景音乐 (使用免费的轻音乐API或本地路径) -->
+    <audio id="bgMusic" loop>
+        <source src="https://music.163.com/song/media/outer/url?id=1901371586.mp3" type="audio/mpeg">
+        <!-- 若无法播放，可替换为本地音乐文件路径 -->
+    </audio>
+
+    <script>
+        // 1. 喜鹊生成逻辑
+        function createMagpie() {
+            const magpie = document.createElement('div');
+            magpie.classList.add('magpie');
+            magpie.innerText = '🐦';
+            magpie.style.left = Math.random() * 100 + 'vw';
+            magpie.style.animationDuration = (Math.random() * 5 + 5) + 's';
+            document.body.appendChild(magpie);
+            setTimeout(() => magpie.remove(), 10000);
+        }
+        setInterval(createMagpie, 800);
+
+        // 2. 音乐控制逻辑
+        const bgMusic = document.getElementById('bgMusic');
+        const musicBtn = document.getElementById('musicBtn');
+        let isPlaying = false;
+
+        musicBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // 阻止触发全屏烟花
+            if (isPlaying) {
+                bgMusic.pause();
+                musicBtn.innerText = "🎵 开启音乐";
+            } else {
+                bgMusic.play().catch(() => alert("音乐加载失败，请检查网络或替换音乐链接"));
+                musicBtn.innerText = "⏸️ 暂停音乐";
+            }
+            isPlaying = !isPlaying;
+        });
+
+        // 3. 全屏粒子烟花特效
+        const canvas = document.getElementById('fireworks-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.velocity = {
+                    x: (Math.random() - 0.5) * 8,
+                    y: (Math.random() - 0.5) * 8
+                };
+                this.alpha = 1;
+                this.friction = 0.95;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 3, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.restore();
+            }
+            update() {
+                this.draw();
+                this.velocity.x *= this.friction;
+                this.velocity.y *= this.friction;
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                this.alpha -= 0.015;
+            }
+        }
+
+        function createFirework(x, y) {
+            const colors = ['#ff758c', '#ffb199', '#ff7eb3', '#ffffff', '#ffd700'];
+            for (let i = 0; i < 60; i++) {
+                particles.push(new Particle(x, y, colors[Math.floor(Math.random() * colors.length)]));
+            }
+        }
+
+        function animateFireworks() {
+            requestAnimationFrame(animateFireworks);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((particle, index) => {
+                particle.update();
+                if (particle.alpha <= 0) particles.splice(index, 1);
+            });
+        }
+        animateFireworks();
+
+        // 点击屏幕任意位置触发烟花
+        window.addEventListener('click', (e) => {
+            createFirework(e.clientX, e.clientY);
+        });
+    </script>
+</body>
+</html>
